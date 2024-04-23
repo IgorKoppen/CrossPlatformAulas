@@ -1,13 +1,13 @@
-import 'package:calculadora_imc/components/contador.dart';
-import 'package:calculadora_imc/components/custom_card.dart';
-import 'package:calculadora_imc/components/gender_select.dart';
+import '../calculadora.dart';
+import '../components/bottom_button.dart';
+import '../components/contador.dart';
+import '../components/custom_card.dart';
+import '../components/gender_select.dart';
+import '../components/modal_result.dart';
+import '../components/slider_altura.dart';
 import 'package:flutter/material.dart';
 
-import '../components/slider_altura.dart';
-
 enum Genero { masculino, feminino }
-
-enum Color { red, green, blue }
 
 class CalculadoraPage extends StatefulWidget {
   const CalculadoraPage({super.key});
@@ -19,8 +19,12 @@ class CalculadoraPage extends StatefulWidget {
 class _CalculadoraPageState extends State<CalculadoraPage> {
   var selectedGender;
   double alturaSlider = 120;
-  int idade1 = 40;
-  int idade2 = 40;
+  int idade = 40;
+  int peso = 40;
+  final int pesoMinimo = 20;
+  final int pesoMaximo = 200;
+  final int idadeMinima = 10;
+  final int idadeMaxima = 100;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,7 +43,7 @@ class _CalculadoraPageState extends State<CalculadoraPage> {
                   isSelected: selectedGender == Genero.masculino,
                   child: const GenderSelect(
                     icon: Icons.male,
-                    text: "Male",
+                    text: "Masculino",
                   ),
                   fn: () {
                     setState(() {
@@ -52,7 +56,7 @@ class _CalculadoraPageState extends State<CalculadoraPage> {
                   isSelected: selectedGender == Genero.feminino,
                   child: const GenderSelect(
                     icon: Icons.female,
-                    text: "Female",
+                    text: "Feminino",
                   ),
                   fn: () {
                     setState(() {
@@ -74,33 +78,70 @@ class _CalculadoraPageState extends State<CalculadoraPage> {
               )),
             ),
             Expanded(
-              child: Row(children: [
-                Expanded(
+              child: Row(
+                children: [
+                  Expanded(
                     child: CustomCard(
-                  child: Contador(
-                    text: "Idade",
-                    contadorValue: idade1,
-                    fn: (int valor) {
-                      setState(() {
-                        idade1 = valor;
-                      });
-                    },
+                      child: Contador(
+                        label: 'Peso',
+                        value: peso,
+                        onIncrement: () {
+                          if (peso < pesoMaximo) {
+                            setState(() {
+                              peso++;
+                            });
+                          }
+                        },
+                        onDecrement: () {
+                          if (peso > pesoMinimo) {
+                            setState(() {
+                              peso--;
+                            });
+                          }
+                        },
+                      ),
+                    ),
                   ),
-                )),
-                Expanded(
+                  Expanded(
                     child: CustomCard(
-                  child: Contador(
-                    text: "Idade2",
-                    contadorValue: idade2,
-                    fn: (int valor) {
-                      setState(() {
-                        idade2 = valor;
-                      });
-                    },
+                      child: Contador(
+                        label: 'Idade',
+                        value: idade,
+                        onIncrement: () {
+                          if (idade < idadeMaxima) {
+                            setState(() {
+                              idade++;
+                            });
+                          }
+                        },
+                        onDecrement: () {
+                          if (idade > idadeMinima) {
+                            setState(() {
+                              idade--;
+                            });
+                          }
+                        },
+                      ),
+                    ),
                   ),
-                )),
-              ]),
+                ],
+              ),
             ),
+            BottomButton(
+                buttonTitle: 'Calcular IMC',
+                onPressed: () {
+                  showModalBottomSheet(
+                      context: context,
+                      builder: (BuildContext context) {
+                        final imc = Calculadora.calcularIMC(
+                            peso: peso, altura: alturaSlider.toInt());
+                        final resultado = Calculadora.obterResultado(imc);
+                        return ModalResult(
+                          imc: imc,
+                          resultado: resultado,
+                        );
+                      });
+                })
           ]),
     );
   }
